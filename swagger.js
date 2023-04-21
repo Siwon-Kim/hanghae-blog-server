@@ -2,10 +2,10 @@ const swaggerAutogen = require("swagger-autogen")();
 
 const doc = {
 	info: {
-		title: "항해 14기 노드반 HW2 Blog APIs",
+		title: "항해 14기 노드반 HW3 Blog APIs",
 		description: "김시원, 정하욱",
 	},
-	host: "localhost:3001",
+	host: "localhost:3000",
 	schemes: ["http"],
 };
 
