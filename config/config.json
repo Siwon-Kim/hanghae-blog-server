@@ -1,9 +1,9 @@
 {
   "development": {
     "username": "root",
-    "password": "gkdnr8785",
-    "database": "express_pract2",
-    "host": "express-database.cbexcccq21ba.ap-northeast-2.rds.amazonaws.com",
+    "password": "rlaznf11!A",
+    "database": "hanghae_blog_hw3",
+    "host": "express-database.cmn55maca8s4.us-east-1.rds.amazonaws.com",
     "dialect": "mysql"
   },
   "test": {
