@@ -3,10 +3,6 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const port = 3000;
 
-//Swagger
-const swaggerUi = require('swagger-ui-express')
-const swaggerFile = require('./swagger-output')
-
 const mainRouter = require("./routes/index.js");
 const connect = require("./schemas");
 connect();
@@ -17,6 +13,9 @@ app.use(cookieParser());
 
 app.use("/", [mainRouter]);
 
+//Swagger
+const swaggerUi = require('swagger-ui-express')
+const swaggerFile = require('./swagger-output')
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
 app.get("/", (req, res) => {
