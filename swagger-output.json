@@ -1,8 +1,8 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "항해 14기 노드반 HW3 Blog APIs",
-    "description": "김시원, 정하욱 - sequelize",
+    "title": "항해 14기 노드반 Blog APIs",
+    "description": "김시원, 정하욱",
     "version": "1.0.0"
   },
   "host": "localhost:3000",
@@ -118,6 +118,20 @@
         }
       }
     },
+    "/posts/like": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
     "/posts/{_postId}": {
       "get": {
         "description": "",
@@ -170,6 +184,27 @@
         }
       },
       "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "_postId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/posts/{_postId}/like": {
+      "post": {
         "description": "",
         "parameters": [
           {
