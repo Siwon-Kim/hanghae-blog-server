@@ -96,6 +96,7 @@ router.put("/:_commentId", authMiddleware, async (req, res) => {
 router.delete("/:_commentId", authMiddleware, async (req, res) => {
 	const { userId } = res.locals.user;
 	const { _postId, _commentId } = req.params;
+    
 	try {
 		const existingPost = await Posts.findByPk(_postId);
 		if (!existingPost) throw new Error("404/게시글이 존재하지 않습니다.");

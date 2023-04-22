@@ -9,6 +9,7 @@ const errorHandler = require("../middlewares/errorHandler");
 router.post("/", authMiddleware, async (req, res) => {
 	const { userId, nickname } = res.locals.user;
 	const { title, content } = req.body;
+
 	try {
 		if (!title || !content)
 			throw new Error("412/데이터의 형식이 일치하지 않습니다.");
@@ -159,6 +160,7 @@ router.put("/:_postId", authMiddleware, async (req, res) => {
 router.delete("/:_postId", authMiddleware, async (req, res) => {
 	const { userId } = res.locals.user;
 	const { _postId } = req.params;
+
 	try {
 		const existingPost = await Posts.findByPk(_postId);
 		if (!existingPost) {
@@ -189,6 +191,7 @@ router.delete("/:_postId", authMiddleware, async (req, res) => {
 router.post("/:_postId/like", authMiddleware, async (req, res) => {
 	const { _postId } = req.params;
 	const { userId } = res.locals.user;
+    
 	try {
 		const getPost = await Posts.findByPk(_postId);
 		if (!getPost) throw new Error("404/게시글이 존재하지 않습니다.");
