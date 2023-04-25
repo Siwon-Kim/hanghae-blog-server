@@ -55,36 +55,38 @@ router.get("/", async (req, res) => {
 router.get("/like", authMiddleware, async (req, res) => {
 	try {
 		const { userId } = res.locals.user;
-		const getLiked = await Likes.findAll({
-			where: { userId: userId },
-			attributes: ["postId"],
-		});
-
-		if (getLiked.length < 0)
-			throw new Error("404/아직 좋아요를 누른 게시글이 없습니다.");
-
-		const postIds = getLiked.map((like) => {
-			return like.dataValues.postId;
-		});
-		const getPosts = await Posts.findAll({
-			where: {
-				postId: {
-					[Op.in]: postIds,
+		const likedPosts = await Likes.findAll({
+			include: [
+				{
+					model: Posts,
+					attributes: [
+						"postId",
+						"UserId",
+						"nickname",
+						"title",
+						"createdAt",
+						"updatedAt",
+						"like",
+					],
 				},
-			},
+			],
+			where: { UserId: userId },
+			attributes: [],
+			order: [[Posts, "like", "DESC"]],
 		});
-
-		const posts = getPosts.map((post) => ({
-			postId: post.postId,
-			userId: post.UserId,
-			nickname: post.nickname,
-			title: post.title,
-			createdAt: post.createdAt,
-			updatedAt: post.updatedAt,
-			likes: post.like,
+		if (likedPosts.length === 0)
+			throw new Error("404/아직 좋아요를 누른 게시글이 없습니다.");
+		
+		const posts = likedPosts.map((post) => ({
+			postId: post.Post.postId,
+			userId: post.Post.UserId,
+			nickname: post.Post.nickname,
+			title: post.Post.title,
+			createdAt: post.Post.createdAt,
+			updatedAt: post.Post.updatedAt,
+			likes: post.Post.like,
 		}));
-
-		return res.status(200).json({ posts });
+		res.status(200).json({ posts });
 	} catch (error) {
 		throw new Error(
 			error.message || "400/좋아요 게시글 조회에 실패하였습니다."
