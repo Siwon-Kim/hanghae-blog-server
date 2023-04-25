@@ -7,6 +7,7 @@ const errorHandler = require("../middlewares/errorHandler");
 
 // POST: 게시글 작성 API
 router.post("/", authMiddleware, async (req, res) => {
+	console.log(res.locals.user);
 	const { userId, nickname } = res.locals.user;
 	const { title, content } = req.body;
 
