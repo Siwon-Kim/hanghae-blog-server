@@ -1,6 +1,7 @@
 const PostService = require("../services/posts.service");
 const LikeService = require("../services/likes.service");
 const { postSchema } = require("./joi");
+
 class PostController {
     postService = new PostService();
     likeService = new LikeService();
@@ -56,7 +57,7 @@ class PostController {
 
         await this.postService.deletePost(userId, _postId);
 
-        return res.status(200).json({ message: "삭제성공!" });
+        return res.status(200).json({ message: "게시글을 삭제하였습니다." });
     };
     getLikePost = async (req, res) => {
         const { userId } = res.locals.user;
@@ -71,8 +72,8 @@ class PostController {
 
         const postLike = await this.likeService.postLike(userId, _postId);
         postLike == 1
-            ? res.status(200).json({ message: "추천!" })
-            : res.status(200).json({ message: "추천취소!" });
+            ? res.status(200).json({ message: "게시글에 좋아요를 눌렀습니다." })
+            : res.status(200).json({ message: "게시글에 좋아요를 취소하였습니다." });
     };
 }
 

@@ -1,19 +1,19 @@
 const CommentRepository = require("../repositories/comments.repository");
-const PostRepository = require("../repositories/posts.repository");
+const PostRepository = require("../services/posts.service");
 
 class CommentService {
 	commentRepository = new CommentRepository();
 	postRepository = new PostRepository();
 
 	createComment = async (postId, nickname, userId, comment) => {
-		const existingPost = await this.postRepository.findPostById(postId);
+		const existingPost = await this.postRepository.getOnePost(postId);
 		if (!existingPost) throw new Error("404/게시글이 존재하지 않습니다.");
 
 		await this.commentRepository.createComment(postId, nickname, userId, comment);
 	};
 
 	findAllComments = async (postId) => {
-		const existingPost = await this.postRepository.findPostById(postId);
+		const existingPost = await this.postRepository.getOnePost(postId);
 		if (!existingPost) throw new Error("404/게시글이 존재하지 않습니다.");
 
 		const comments = await this.commentRepository.findAllComments(postId);
@@ -36,7 +36,7 @@ class CommentService {
 	};
 
 	updateComment = async (postId, userId, comment, commentId) => {
-		const existingPost = await this.postRepository.findPostById(postId);
+		const existingPost = await this.postRepository.getOnePost(postId);
 		if (!existingPost) throw new Error("404/게시글이 존재하지 않습니다.");
 
 		const existingComment = await this.commentRepository.findComment(commentId);
@@ -51,7 +51,7 @@ class CommentService {
 	};
 
 	deleteComment = async (postId, userId, commentId) => {
-		const existingPost = await this.postRepository.findPostById(postId);
+		const existingPost = await this.postRepository.getOnePost(postId);
 		if (!existingPost) throw new Error("404/게시글이 존재하지 않습니다.");
 
 		const existingComment = await this.commentRepository.findComment(commentId);

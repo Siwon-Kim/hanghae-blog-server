@@ -54,7 +54,8 @@ class PostService {
 
     authorization = async (userId, _postId) => {
         const onePost = await this.postRepository.getOnePost(_postId);
-        if (onePost.UserId !== userId)
+        console.log(onePost);
+        if (onePost.userId !== userId)
             throw new Error("403/게시글 수정의 권한이 존재하지 않습니다.");
     };
 

@@ -22,7 +22,6 @@ class PostRepository {
 
     getOnePost = async (_postId) => {
         const getOnePost = await Posts.findByPk(_postId);
-
         return getOnePost;
     };
 
