@@ -1,6 +1,6 @@
-const PostService = require("../services/posts.services");
-const LikeService = require("../services/likes.services");
-const joi = require("./joi");
+const PostService = require("../services/posts.service");
+const LikeService = require("../services/likes.service");
+const { postSchema } = require("./joi");
 class PostController {
     postService = new PostService();
     likeService = new LikeService();
@@ -10,12 +10,11 @@ class PostController {
     };
 
     createPost = async (req, res) => {
-        await joi.postSchema
+        const { title, content } = await postSchema
             .validateAsync(req.body, { abortEarly: false })
             .catch((error) => {
                 throw new Error(`412/${error.message}`);
             });
-        const { title, content } = req.body;
         const { userId, nickname } = res.locals.user;
 
         await this.postService.createPost(title, content, userId, nickname);
@@ -34,14 +33,13 @@ class PostController {
     };
 
     updatePost = async (req, res) => {
-        await joi.postSchema
+        const { userId } = res.locals.user;
+        const { title, content } = await postSchema
             .validateAsync(req.body, { abortEarly: false })
             .catch((error) => {
                 throw new Error(`412/${error.message}`);
             });
 
-        const { userId } = res.locals.user;
-        const { title, content } = req.body;
         const { _postId } = req.params;
         await this.postService.authorization(userId, _postId);
 
