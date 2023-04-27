@@ -8,7 +8,7 @@ const postController = new PostController();
 router.post("/", authMiddleware, postController.createPost);
 
 // GET: 전체 게시글 목록 조회 API
-router.get("/", authMiddleware, postController.getAllPosts);
+router.get("/", postController.getAllPosts);
 
 // GET: 좋아요한 게시글 조회 API
 router.get("/like", authMiddleware, postController.getLikePost);
