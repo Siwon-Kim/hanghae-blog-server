@@ -1,206 +1,81 @@
-const PostService = require("../services/posts.service");
-const { sequelize } = require("../models");
-const { Transaction } = require("sequelize");
-
+const PostService = require("../services/posts.services");
+const LikeService = require("../services/likes.services");
+const joi = require("./joi");
 class PostController {
-	postService = new PostService();
+    postService = new PostService();
+    likeService = new LikeService();
+    getAllPosts = async (req, res) => {
+        const getAllPosts = await this.postService.findAllPost();
+        return res.status(200).json({ data: getAllPosts });
+    };
 
-	// POST: 게시글 작성 API
-	createPost = async (req, res, next) => {
-		const { userId, nickname } = res.locals.user;
-		const { title, content } = req.body;
+    createPost = async (req, res) => {
+        await joi.postSchema
+            .validateAsync(req.body, { abortEarly: false })
+            .catch((error) => {
+                throw new Error(`412/${error.message}`);
+            });
+        const { title, content } = req.body;
+        const { userId, nickname } = res.locals.user;
 
-		if (!title || !content)
-			throw new Error("412/데이터의 형식이 일치하지 않습니다.");
+        await this.postService.createPost(title, content, userId, nickname);
 
-		if (typeof title !== "string")
-			throw new Error("412/게시글 제목의 형식이 일치하지 않습니다.");
+        return res.status(200).json({
+            message: "게시글을 작성에 성공하였습니다.",
+        });
+    };
 
-		if (typeof content !== "string")
-			throw new Error("412/게시글 내용의 형식이 일치하지 않습니다.");
+    getOnePost = async (req, res, next) => {
+        const { _postId } = req.params;
 
-		try {
-			await this.postService.createPost(nickname, userId, title, content);
+        const getOnePost = await this.postService.getOnePost(_postId);
 
-			res.status(201).json({
-				message: "게시글을 작성에 성공하였습니다.",
-			});
-		} catch (error) {
-			throw new Error(
-				error.message || "400/게시글 작성에 실패하였습니다."
-			);
-		}
-	};
+        return res.status(200).json({ getOnePost });
+    };
 
-	// GET: 전체 게시글 목록 조회 API
-	getAllPosts = async (req, res, next) => {
-		try {
-			const posts = await this.postService.findAllPost();
+    updatePost = async (req, res) => {
+        await joi.postSchema
+            .validateAsync(req.body, { abortEarly: false })
+            .catch((error) => {
+                throw new Error(`412/${error.message}`);
+            });
 
-			if (posts.length === 0)
-				throw new Error("404/게시글이 존재하지 않습니다.");
+        const { userId } = res.locals.user;
+        const { title, content } = req.body;
+        const { _postId } = req.params;
+        await this.postService.authorization(userId, _postId);
 
-			res.status(200).json({ posts });
-		} catch (error) {
-			throw new Error(
-				error.message || "400/게시글 조회에 실패하였습니다."
-			);
-		}
-	};
+        await this.postService.updatePost(userId, title, content, _postId);
 
-	// GET: 좋아요한 게시글 조회 API
-	getLikedPosts = async (req, res, next) => {
-		const { userId } = res.locals.user;
-		try {
-			const posts = await this.postService.findLikedPosts(userId);
+        return res.status(200).json({ message: "게시글을 수정하셨습니다" });
+    };
 
-			if (posts.length === 0) return res.status(200).json({ message: "아직 좋아요를 누른 게시글이 없습니다." });
+    deletePost = async (req, res) => {
+        const { userId } = res.locals.user;
+        const { _postId } = req.params;
 
-			res.status(200).json({ posts });
-		} catch (error) {
-			throw new Error(
-				error.message || "400/좋아요 게시글 조회에 실패하였습니다."
-			);
-		}
-	};
+        await this.postService.authorization(userId, _postId);
 
-	// GET: 게시물 상세 조회 API
-	getPost = async (req, res, next) => {
-		const { _postId } = req.params;
+        await this.postService.deletePost(userId, _postId);
 
-		try {
-			const post = await this.postService.findPostById(_postId);
-			if (!post) throw new Error("404/게시글이 존재하지 않습니다.");
+        return res.status(200).json({ message: "삭제성공!" });
+    };
+    getLikePost = async (req, res) => {
+        const { userId } = res.locals.user;
 
-			res.status(200).json({ post });
-		} catch (error) {
-			throw new Error(
-				error.message || "400/게시글 조회에 실패하였습니다."
-			);
-		}
-	};
+        const getLikePost = await this.likeService.getLikePost(userId);
 
-	// PUT: 게시글 수정 API
-	changePost = async (req, res, next) => {
-		const { userId } = res.locals.user;
-		const { title, content } = req.body;
-		const { _postId } = req.params;
+        return res.status(200).json({ data: getLikePost });
+    };
+    postLike = async (req, res) => {
+        const { _postId } = req.params;
+        const { userId } = res.locals.user;
 
-		if (!title || !content)
-			throw new Error("412/데이터 형식이 올바르지 않습니다.");
-
-		if (typeof title !== "string")
-			throw new Error("412/게시글 제목의 형식이 올바르지 않습니다.");
-
-		if (typeof content !== "string")
-			throw new Error("412/게시글 내용의 형식이 올바르지 않습니다.");
-
-		try {
-			const post = await this.postService.findPost(userId, _postId);
-
-			if (!post)
-				throw new Error("403/게시글 수정의 권한이 존재하지 않습니다.");
-
-			await this.postService
-				.updatePost(title, content, _postId, userId)
-				.then(
-					res
-						.status(200)
-						.json({ message: "게시글을 수정하였습니다." })
-				)
-				.catch((error) => {
-					throw new Error(
-						"401/게시글이 정상적으로 수정되지 않았습니다."
-					);
-				});
-		} catch (error) {
-			throw new Error(
-				error.message || "400/게시글 수정에 실패하였습니다."
-			);
-		}
-	};
-
-	// DELETE: 게시글 삭제 API
-	deletePost = async (req, res, next) => {
-		const { userId } = res.locals.user;
-		const { _postId } = req.params;
-
-		try {
-			const existingPost = await this.postService.findPostById(_postId);
-			if (!existingPost) {
-				throw new Error("404/게시글이 존재하지 않습니다.");
-			}
-			if (existingPost.userId !== userId)
-				throw new Error("403/게시글의 삭제 권한이 존재하지 않습니다.");
-
-			await this.postService
-				.deletePost(_postId, userId)
-				.then(
-					res.status(200).json({
-						message: "게시글을 삭제하였습니다.",
-					})
-				)
-				.catch((error) => {
-					throw new Error(
-						"401/게시글이 정상적으로 삭제되지 않았습니다."
-					);
-				});
-		} catch (error) {
-			throw new Error(
-				error.message || "400/게시글 삭제에 실패하였습니다."
-			);
-		}
-	};
-
-	// POST: 게시글 좋아요 API
-	clickLike = async (req, res, next) => {
-		const { _postId } = req.params;
-		const { userId } = res.locals.user;
-
-		const t = await sequelize.transaction({
-			isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
-		});
-
-		try {
-			const existingPost = await this.postService.findPostById(_postId);
-			if (!existingPost)
-				throw new Error("404/게시글이 존재하지 않습니다.");
-
-			const existingLike = await this.postService.findLike(
-				_postId,
-				userId
-			);
-
-			if (!existingLike) {
-				await this.postService.createLike(userId, _postId, {
-					transaction: t,
-				});
-				await this.postService.incrementLike(_postId, {
-					transaction: t,
-				});
-				await t.commit();
-				res.status(200).json({
-					message: "게시글의 좋아요를 등록하였습니다",
-				});
-			} else {
-				await this.postService.deleteLike(userId, _postId, {
-					transaction: t,
-				});
-				await this.postService.decrementLike(_postId, {
-					transaction: t,
-				});
-				await t.commit();
-				res.status(200).json({
-					message: "게시글의 좋아요를 취소하였습니다.",
-				});
-			}
-		} catch (error) {
-			await t.rollback();
-			throw new Error(
-				error.message || "400/게시글 좋아요에 실패하였습니다."
-			);
-		}
-	};
+        const postLike = await this.likeService.postLike(userId, _postId);
+        postLike == 1
+            ? res.status(200).json({ message: "추천!" })
+            : res.status(200).json({ message: "추천취소!" });
+    };
 }
 
 module.exports = PostController;

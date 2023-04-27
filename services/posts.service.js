@@ -1,92 +1,80 @@
-const PostRepository = require("../repositories/posts.repository");
+const PostRepository = require("../repository/posts.repository");
 
 class PostService {
-	postRepository = new PostRepository();
+    postRepository = new PostRepository();
 
-	createPost = async (nickname, userId, title, content) => {
-		await this.postRepository.createPost(nickname, userId, title, content);
-	};
+    findAllPost = async () => {
+        const allPost = await this.postRepository
+            .findAllPost()
+            .catch((error) => {
+                throw new Error("400/게시글 조회에 실패하셨습니다");
+            });
 
-	findAllPost = async () => {
-		const allPosts = await this.postRepository.findAllPost();
+        if (allPost.length < 1)
+            //[]
+            throw new Error("404/게시글이 존재하지 않습니다");
 
-		return allPosts.map((post) => ({
-			postId: post.postId,
-			userId: post.UserId,
-			nickname: post.nickname,
-			title: post.title,
-			createdAt: post.createdAt,
-			updatedAt: post.updatedAt,
-			likes: post.like,
-		}));
-	};
+        return allPost.map((post) => ({
+            postId: post.postId,
+            userId: post.UserId,
+            nickname: post.nickname,
+            title: post.title,
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
+            likes: post.like,
+        }));
+    };
 
-	findLikedPosts = async (userId) => {
-		const likedPosts = await this.postRepository.findLikedPosts(userId);
+    createPost = async (title, content, userId, nickname) => {
+        const createPost = await this.postRepository
+            .createPost(title, content, userId, nickname)
 
-		return likedPosts.map((post) => ({
-			postId: post.Post.postId,
-			userId: post.Post.UserId,
-			nickname: post.Post.nickname,
-			title: post.Post.title,
-			createdAt: post.Post.createdAt,
-			updatedAt: post.Post.updatedAt,
-			likes: post.Post.like,
-		}));
-	};
+            .catch((error) => {
+                throw new Error(
+                    error.message || "400/게시글 작성에 실패하였습니다."
+                );
+            });
 
-	findPostById = async (postId) => {
-		const post = await this.postRepository.findPostById(postId);
+        return createPost;
+    };
 
-		return post === null
-			? 0
-			: {
-				postId: post.postId,
-				userId: post.UserId,
-				nickname: post.nickname,
-				title: post.title,
-				content: post.content,
-				createdAt: post.createdAt,
-				updatedAt: post.updatedAt,
-				likes: post.like,
-			};
-	};
+    getOnePost = async (_postId) => {
+        const onePost = await this.postRepository
+            .getOnePost(_postId)
+            .catch((error) => {
+                throw new Error(
+                    error.message || "400/게시글 조회에 실패하였습니다."
+                );
+            });
 
-	findPost = async (userId, postId) => {
-		const post = await this.postRepository.findPost(userId, postId);
+        if (!onePost) throw new Error("404/게시글이 존재하지 않습니다."); //null
 
-		return post;
-	};
+        return onePost;
+    };
 
-	updatePost = async (title, content, postId, userId) => {
-		await this.postRepository.updatePost(title, content, postId, userId);
-	};
+    authorization = async (userId, _postId) => {
+        const onePost = await this.postRepository.getOnePost(_postId);
+        if (onePost.UserId !== userId)
+            throw new Error("403/게시글 수정의 권한이 존재하지 않습니다.");
+    };
 
-	deletePost = async (postId, userId) => {
-		await this.postRepository.deletePost(postId, userId);
-	};
+    updatePost = async (userId, title, content, _postId) => {
+        const updatePost = await this.postRepository
+            .updatePost(userId, title, content, _postId)
+            .catch((error) => {
+                throw new Error("401/게시글이 정상적으로 수정되지 않았습니다.");
+            });
 
-	findLike = async (postId, userId) => {
-		const getLike = this.postRepository.findLike(postId, userId);
-
-		return getLike;
-	};
-
-	createLike = async (userId, postId) => {
-		await this.postRepository.createLike(userId, postId);
-	};
-
-	deleteLike = async (userId, postId) => {
-		await this.postRepository.deleteLike(userId, postId);
-	};
-
-	incrementLike = async (postId) => {
-		await this.postRepository.incrementLike(postId);
-	};
-
-	decrementLike = async (postId) => {
-		await this.postRepository.decrementLike(postId);
-	};
+        return updatePost;
+    };
+    deletePost = async (userId, _postId) => {
+        const deletePost = await this.postRepository
+            .deletePost(userId, _postId)
+            .catch((error) => {
+                throw new Error("401/게시글이 정상적으로 삭제되지 않았습니다.");
+            });
+        return deletePost;
+    };
 }
 
 module.exports = PostService;
