@@ -1,106 +1,48 @@
 const { Posts, Likes } = require("../models");
 const { Op } = require("sequelize");
-
 class PostRepository {
-	findAllPost = async () => {
-		const posts = await Posts.findAll({ order: [["createdAt", "DESC"]] });
+    findAllPost = async () => {
+        const getAllPosts = await Posts.findAll({
+            order: [["createdAt", "DESC"]],
+        });
 
-		return posts;
-	};
+        return getAllPosts;
+    };
 
-	createPost = async (nickname, userId, title, content) => {
-		await Posts.create({
-			nickname,
-			UserId: userId,
-			title,
-			content,
-		});
-	};
+    createPost = async (title, content, userId, nickname) => {
+        const createPost = await Posts.create({
+            nickname,
+            title,
+            content,
+            UserId: userId,
+        });
+        return createPost;
+    };
 
-	findLikedPosts = async (userId) => {
-		const likedPosts = await Likes.findAll({
-			include: [
-				{
-					model: Posts,
-					attributes: [
-						"postId",
-						"UserId",
-						"nickname",
-						"title",
-						"createdAt",
-						"updatedAt",
-						"like",
-					],
-				},
-			],
-			where: { UserId: userId },
-			attributes: [],
-			order: [[Posts, "like", "DESC"]],
-		});
+    getOnePost = async (_postId) => {
+        const getOnePost = await Posts.findByPk(_postId);
 
-		return likedPosts;
-	};
+        return getOnePost;
+    };
 
-	findPostById = async (postId) => {
-		const post = await Posts.findByPk(postId);
-		console.log(post);
-		return post;
-	};
-
-	findPost = async (userId, postId) => {
-		const post = await Posts.findOne({
-			where: { UserId: userId, postId },
-		});
-
-		return post;
-	};
-
-	updatePost = async (title, content, postId, userId) => {
-		await Posts.update(
-			{ title, content },
-			{
-				where: {
-					[Op.and]: [{ postId }, { UserId: userId }],
-				},
-			}
-		)
-	};
-
-	deletePost = async (postId, userId) => {
-		await Posts.destroy({
-			where: {
-				[Op.and]: [{ postId }, { UserId: userId }],
-			},
-		})
-	};
-
-	findLike = async (postId, userId) => {
-		const getLike = await Likes.findOne({
-			where: {
-				[Op.and]: [{ PostId: postId }, [{ userId: userId }]],
-			},
-		});
-
-		return getLike;
-	};
-
-	createLike = async (userId, postId) => {
-        await Likes.create({ UserId: userId, PostId: postId });	};
-
-	deleteLike = async (userId, postId) => {
-        await Likes.destroy({
+    updatePost = async (userId, title, content, _postId) => {
+        const updatePost = await Posts.update(
+            { title, content },
+            {
+                where: {
+                    [Op.and]: [{ postId: _postId }, { UserId: userId }],
+                },
+            }
+        );
+        return updatePost;
+    };
+    deletePost = async (userId, _postId) => {
+        const deletePost = await Posts.destroy({
             where: {
-                [Op.and]: [{ postId }, [{ userId }]],
+                [Op.and]: [{ postId: _postId }, { UserId: userId }],
             },
-        });	};
-
-	incrementLike = async (postId) => {
-        await Posts.increment("like", { where: { postId } });
-	};
-
-	decrementLike = async (postId) => {
-        await Posts.decrement("like", { where: { postId } });
-	};
+        });
+        return deletePost;
+    };
 }
-
 module.exports = PostRepository;
