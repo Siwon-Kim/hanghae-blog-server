@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": "gkdnr8785",
-    "database": "express_prac",
+    "database": "express_prac3",
     "host": "express-database.cbexcccq21ba.ap-northeast-2.rds.amazonaws.com",
     "dialect": "mysql"
   },
