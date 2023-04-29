@@ -67,24 +67,29 @@ class LikeRepository {
         const t = await sequelize.transaction({
             isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED, // 트랜잭션 격리 수준을 설정합니다.
         });
-        await Likes.destroy(
-            {
-                where: {
-                    [Op.and]: [{ postId: _postId }, [{ userId: userId }]],
+        try {
+            await Likes.destroy(
+                {
+                    where: {
+                        [Op.and]: [{ postId: _postId }, [{ userId: userId }]],
+                    },
                 },
-            },
-            { transaction: t }
-        );
-        await Posts.decrement(
-            "like",
-            {
-                where: {
-                    postId: _postId,
+                { transaction: t }
+            );
+            await Posts.decrement(
+                "like",
+                {
+                    where: {
+                        postId: _postId,
+                    },
                 },
-            },
-            { transaction: t }
-        );
-        await t.commit();
+                { transaction: t }
+            );
+            await t.commit();
+        } catch (transactionError) {
+            console.error(transactionError);
+            await t.rollback();
+        }
     };
 }
 module.exports = LikeRepository;
